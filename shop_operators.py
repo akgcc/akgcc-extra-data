@@ -154,7 +154,7 @@ def get_operator_lists_wiki():
             if 'type' in banner and 'linkup' in banner['type'].lower():
                 continue  # skip linkup
 
-            raw_date = banner.get('date') or banner.get('global', '')
+            raw_date = banner.get('date') or banner.get('global', '') or banner.get('start') or banner.get('globalstart')
             date = unescape(raw_date).split('–')[0].strip()
 
             ops = []
