@@ -53,10 +53,10 @@ def scrape_wiki():
     params = {
         "action": "cargoquery",
         "tables": "Operators=O,Events=E,OperatorFiles=F",
-        "fields": "E.global_date_start=start,F.id=charId",
+        "fields": "E.startTimeGlobal=start,F.id=charId",
         "join_on": "O.event=E.name,F.name=O.name",
         "format": "json",
-        "where": "F.id IS NOT NULL AND E.global_date_start IS NOT NULL",
+        "where": "F.id IS NOT NULL AND E.startTimeGlobal IS NOT NULL",
     }
     while 1:
         params['limit'] = limit
