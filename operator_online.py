@@ -43,20 +43,20 @@ def scrape_PRTS():
 def scrape_wiki():
     # update the prts.wiki data with global release dates from arknights.wiki.gg/
     # while it is possible to get limited status and some CN dates from the wiki, those only come from prts for now.
+    # https://arknights.wiki.gg/wiki/Special:CargoTables
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     }
     url = "https://arknights.wiki.gg/api.php"
     limit = 500
     offset = 0
-    # if you need the rest of the data use fields "E.cn_date_start" and "E.event_type"
     params = {
         "action": "cargoquery",
-        "tables": "Operators=O,Events=E,OperatorFiles=F",
-        "fields": "E.startTimeGlobal=start,F.id=charId",
-        "join_on": "O.event=E.name,F.name=O.name",
+        "tables": "Operators=O,OperatorFiles=F,EventServerDetails=S",
+        "fields": "S.startTime=start,F.id=charId",
+        "join_on": "O.event=S.event,F.name=O.name",
         "format": "json",
-        "where": "F.id IS NOT NULL AND E.startTimeGlobal IS NOT NULL",
+        "where": "F.id IS NOT NULL AND S.startTime IS NOT NULL AND S.server LIKE 'global'",
     }
     while 1:
         params['limit'] = limit
