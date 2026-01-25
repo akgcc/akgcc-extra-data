@@ -364,7 +364,7 @@ async function getYostarCookies(server, email, emailToken) {
 
   return { data, cookies };
 }
-async function fetchWithYostarCookies(server, url, cookies) {
+async function fetchWithYostarCookies(server, url, cookies, usePOST = false) {
   // Build cookie header
   const cookieHeader = Object.entries(cookies)
     .map(([k, v]) => `${k}=${v}`)
@@ -378,7 +378,7 @@ async function fetchWithYostarCookies(server, url, cookies) {
     "Cache-Control": "max-age=0",
     Connection: "keep-alive",
     Cookie: cookieHeader,
-    Host: "account.yo-star.com",
+    Host: new URL(url).host,
     Referer: `${SERVER_MAP[server]}/`,
     "Sec-Fetch-Dest": "document",
     "Sec-Fetch-Mode": "navigate",
@@ -394,7 +394,7 @@ async function fetchWithYostarCookies(server, url, cookies) {
   };
 
   const res = await fetch(url, {
-    method: "GET", // change to POST if needed
+    method: usePOST ? "POST" : "GET", // change to POST if needed
     headers,
   });
 
@@ -464,6 +464,48 @@ export default {
         console.log("Using provided YSSID and YSSID.sig, skipping login...");
         cookies["YSSID"] = decodeURIComponent(YSSID);
         cookies["YSSID.sig"] = decodeURIComponent(YSSID_sig);
+
+        if (body.logout) {
+          console.log("Processing logout request...");
+
+          const logoutUrl = `${SERVER_MAP[server]}/api/user/logout`;
+          console.log("logging out via", logoutUrl);
+          const logoutResult = await fetchWithYostarCookies(
+            server,
+            logoutUrl,
+            cookies,
+            true, // POST
+          );
+
+          console.log("Logout response:", logoutResult);
+          if (logoutResult.message === "ok" && logoutResult.code === 0) {
+            return new Response(
+              JSON.stringify({
+                status: 200,
+                result: logoutResult,
+              }),
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              },
+            );
+          } else {
+            return new Response(
+              JSON.stringify({
+                status: 500,
+                result: logoutResult,
+              }),
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              },
+            );
+          }
+        }
       } else {
         // --------- Workflows 1 & 2: Email/code login ---------
         if (!email) {
